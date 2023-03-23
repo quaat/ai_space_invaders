@@ -7,7 +7,7 @@ pygame.init()
 pygame.mixer.init()
 
 
-fullscreen = False
+fullscreen = True
 
 # Initialize the Pygame module, define constants, and load the sprites
 SCREEN_WIDTH = 1920
@@ -43,6 +43,14 @@ def resize_image(image, new_width):
 
 def load_image(filename):
     return pygame.image.load(filename)
+
+
+def draw_text(surface, text, size, x, y, color=(255, 255, 255)):
+    font = pygame.font.Font(None, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect()
+    text_rect.topleft = (x, y)
+    surface.blit(text_surface, text_rect)
 
 
 welcome_bg = pygame.image.load("assets/welcome_bg.png")
@@ -93,7 +101,8 @@ explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
 class Shield(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = shield_img
+        self.original_image = shield_img
+        self.image = shield_img.copy()
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -103,6 +112,13 @@ class Shield(pygame.sprite.Sprite):
         self.health -= damage
         if self.health <= 0:
             self.kill()
+        else:
+            self.update_transparency()
+
+    def update_transparency(self):
+        alpha = int((self.health / 100) * 255)
+        self.image = self.original_image.copy()
+        self.image.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MULT)
 
 
 class Player(pygame.sprite.Sprite):
@@ -198,7 +214,7 @@ import itertools
 last_score = 0
 high_score = 0
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 pygame.display.set_caption("Space Invaders")
 
@@ -227,6 +243,7 @@ def setup_shields():
     return shields
 
 
+import contextlib
 for row, col in itertools.product(range(ALIEN_ROWS), range(ALIEN_COLUMNS)):
     x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
     y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
@@ -268,16 +285,17 @@ while True:
     if aliens_hit:
         invaderkilled_sound.play()
     SCORE += len(aliens_hit) * 10
+    draw_text(screen, f"Score: {SCORE}", int(SCREEN_WIDTH / 30), SCREEN_WIDTH - 300, 10)
 
     shields_hit = pygame.sprite.groupcollide(shields, bullets, False, True)
     for shield in shields_hit:
         shield.hit(25)  # Adjust the damage value based on your preference
 
     if random.random() < alien_shoot_prob:
-        alien_shooter = random.choice(aliens.sprites())
-        alien_bullet = Bullet(alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1)
-        bullets.add(alien_bullet)
-
+        with contextlib.suppress(IndexError):
+            alien_shooter = random.choice(aliens.sprites())
+            alien_bullet = Bullet(alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1)
+            bullets.add(alien_bullet)
     if pygame.sprite.spritecollide(player, bullets, False) or any(
         alien.rect.colliderect(player.rect) for alien in aliens
     ):
