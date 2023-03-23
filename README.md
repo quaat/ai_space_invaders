@@ -32,7 +32,7 @@ pip install pygame
 3. Clone this repository to your local machine:
 
 ```
-git clone https://github.com/your_username/custom-space-invaders.git
+git clone https://github.com/quaat/ai_space_invaders.git
 ```
 
 
