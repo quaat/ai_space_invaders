@@ -39,7 +39,7 @@ git clone https://github.com/quaat/ai_space_invaders.git
 4. Navigate to the project directory:
 
 ```
-cd custom-space-invaders
+cd ai-space-invaders
 ```
 
 ## Usage
