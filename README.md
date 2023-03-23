@@ -1,10 +1,12 @@
 
-# Custom Space Invaders
+# AI Generated Space Invaders
 
 This repository contains the source code for a custom Space Invaders
 game, created using Python and the Pygame library. The game is
 inspired by the classic Space Invaders arcade game, featuring a unique
-design, challenging gameplay, and nostalgic sound effects.
+design, challenging gameplay, and nostalgic sound effects. The game 
+was genereated using ChatGPT-4. Graphics was generated using MidJourney.
+See [backstory](./backstory.md) for the ChatGPT dialog.
 
 ## Table of Contents
 
