@@ -58,26 +58,27 @@ alien2_img = resize_image(load_image("assets/alien2.png"), alien_width)
 alien3_img = resize_image(load_image("assets/alien3.png"), alien_width)
 alien4_img = resize_image(load_image("assets/alien4.png"), alien_width)
 
+alien_imgs = [alien1_img, alien2_img, alien2_img, alien3_img, alien4_img]
 
 player_img = pygame.transform.scale(
     player_img,
     (
-        int(player_img.get_width() * scale_factor),
-        int(player_img.get_height() * scale_factor),
+        int(player_img.get_width() * 1),
+        int(player_img.get_height() * 1),
     ),
 )
 bullet_img = pygame.transform.scale(
     bullet_img,
     (
-        int(bullet_img.get_width() * scale_factor),
-        int(bullet_img.get_height() * scale_factor),
+        int(bullet_img.get_width() * 0.3),
+        int(bullet_img.get_height() * 0.3),
     ),
 )
 
 
-#shield_img = pygame.image.load("shield.png")
-#shield_width = int(SCREEN_WIDTH * 0.1)  # Adjust the size to your preference
-#shield_img = resize_image(shield_img, shield_width)
+shield_img = pygame.image.load("shield.png")
+shield_width = int(SCREEN_WIDTH * 0.1)  # Adjust the size to your preference
+shield_img = resize_image(shield_img, shield_width)
 
 
 # Load the sound effects
