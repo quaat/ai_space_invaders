@@ -75,3 +75,7 @@ Contributions are welcome! If you have any ideas or suggestions to improve the g
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+
+## Acknowledgement
+
+The sound effects are from the [classic arcade game Space Invaders](https://www.classicgaming.cc/classics/space-invaders/sounds) released in 1978 by Taito.
