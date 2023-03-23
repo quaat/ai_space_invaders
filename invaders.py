@@ -7,10 +7,13 @@ pygame.init()
 pygame.mixer.init()
 
 
+fullscreen = False
 
 # Initialize the Pygame module, define constants, and load the sprites
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+#SCREEN_WIDTH = 800
+#SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1080
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 FPS = 60
@@ -30,6 +33,8 @@ scale_factor = 0.3
 ALIEN_SPACING = int(ALIEN_SPACING * scale_factor)
 
 alien_width = int(SCREEN_WIDTH * 0.05)
+shield_width = int(SCREEN_WIDTH * 0.1)
+player_width = int(SCREEN_WIDTH * 0.06)
 
 def resize_image(image, new_width):
     aspect_ratio = image.get_height() / image.get_width()
@@ -43,19 +48,26 @@ def load_image(filename):
 welcome_bg = pygame.image.load("welcome_bg.png")
 welcome_bg = pygame.transform.scale(welcome_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-player_img = pygame.image.load("player.png")
+#player_img = pygame.image.load("player.png")
 bullet_img = pygame.image.load("bullet.png")
 game_bg = pygame.transform.scale(load_image("game_bg.png"), (SCREEN_WIDTH, SCREEN_HEIGHT))
 alien1_img = resize_image(load_image("alien1.png"), alien_width)
 alien2_img = resize_image(load_image("alien2.png"), alien_width)
 alien3_img = resize_image(load_image("alien3.png"), alien_width)
 alien4_img = resize_image(load_image("alien4.png"), alien_width)
+alien_imgs = [alien1_img, alien2_img, alien2_img, alien3_img, alien4_img]
 
+player_img = resize_image(load_image("player.png"), player_width)
+shield_img = resize_image(load_image("shield.png"), shield_width)
 
-player_img = pygame.transform.scale(player_img, (int(player_img.get_width() * scale_factor), int(player_img.get_height() * scale_factor)))
+#player_img = pygame.transform.scale(player_img, (int(player_img.get_width() * scale_factor), int(player_img.get_height() * scale_factor)))
 bullet_img = pygame.transform.scale(bullet_img, (int(bullet_img.get_width() * scale_factor), int(bullet_img.get_height() * scale_factor)))
 
-alien_imgs = [alien1_img, alien2_img, alien2_img, alien3_img, alien4_img]
+
+#shield_img = pygame.image.load("shield.png")
+#shield_width = int(SCREEN_WIDTH * 0.1)  # Adjust the size to your preference
+#shield_img = resize_image(shield_img, shield_width)
+
 
 # Load the sound effects
 shoot_sound = pygame.mixer.Sound("shoot.wav")
@@ -64,6 +76,21 @@ explosion_sound = pygame.mixer.Sound("explosion.wav")
 
 
 # Define the classes for the game objects
+
+class Shield(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = shield_img
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.health = 100  # You can adjust the health of the shield
+
+    def hit(self, damage):
+        self.health -= damage
+        if self.health <= 0:
+            self.kill()
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -104,7 +131,10 @@ class Alien(pygame.sprite.Sprite):
 
 # Define a function to display the welcome screen
 def welcome_screen(last_score, high_score):
+    global fullscreen
+    global screen
     font = pygame.font.Font(None, 36)
+
 
     welcome_text = "Press 'P' to play or 'Q' to quit"
     welcome_text_surface = font.render(welcome_text, True, WHITE)
@@ -129,6 +159,12 @@ def welcome_screen(last_score, high_score):
                 if event.key == K_q:
                     pygame.quit()
                     sys.exit()
+                if event.key == K_F11:
+                    fullscreen = not fullscreen
+                    if fullscreen:
+                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                    else:
+                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         pygame.display.flip()
         clock.tick(FPS)
@@ -148,6 +184,24 @@ player = Player()
 aliens = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 
+# Create and position the shield instances
+def setup_shields():
+    shields = pygame.sprite.Group()
+
+    shield_count = 3
+    shield_spacing = SCREEN_WIDTH / 6
+    start_x = (SCREEN_WIDTH - shield_count * shield_width - (shield_count - 1) * shield_spacing) // 2
+    start_y = SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.2)
+
+
+    for i in range(shield_count):
+        x = start_x + i * (shield_width + shield_spacing)
+        y = start_y
+        shield = Shield(x, y)
+        shields.add(shield)
+
+    return shields
+
 for row, col in itertools.product(range(ALIEN_ROWS), range(ALIEN_COLUMNS)):
     x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
     y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
@@ -160,6 +214,7 @@ if not welcome_screen(last_score, high_score):
     pygame.quit()
     sys.exit()
 
+shields = setup_shields()
 while True:
     screen.blit(game_bg, (0, 0))
     keys = pygame.key.get_pressed()
@@ -189,6 +244,11 @@ while True:
         invaderkilled_sound.play()
     SCORE += len(aliens_hit) * 10
 
+    shields_hit = pygame.sprite.groupcollide(shields, bullets, False, True)
+    for shield in shields_hit:
+        shield.hit(25)  # Adjust the damage value based on your preference
+
+
     if random.random() < alien_shoot_prob:
         alien_shooter = random.choice(aliens.sprites())
         alien_bullet = Bullet(alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1)
@@ -199,6 +259,7 @@ while True:
         pygame.time.delay(3000)  # Wait for 3 seconds (3000 milliseconds)
         last_score = SCORE
         high_score = max(high_score, last_score)
+        shields = setup_shields()
         SCORE = 0
         ALIEN_SPEED = 2
         alien_shoot_prob = ALIEN_SHOOT_PROB
@@ -227,6 +288,7 @@ while True:
 
     aliens.draw(screen)
     bullets.draw(screen)
+    shields.draw(screen)
     screen.blit(player.image, player.rect)
 
     pygame.display.flip()
