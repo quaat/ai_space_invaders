@@ -76,4 +76,4 @@ Contributions are welcome! If you have any ideas or suggestions to improve the g
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the eMIT License. See the [LICENSE](LICENSE) file for more information.
