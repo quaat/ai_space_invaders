@@ -151,7 +151,6 @@ def welcome_screen(last_score, high_score):
     global screen
     font = pygame.font.Font(None, 36)
 
-
     welcome_text = "Press 'P' to play or 'Q' to quit"
     welcome_text_surface = font.render(welcome_text, True, WHITE)
     welcome_text_rect = welcome_text_surface.get_rect(
@@ -182,7 +181,9 @@ def welcome_screen(last_score, high_score):
                 if event.key == K_F11:
                     fullscreen = not fullscreen
                     if fullscreen:
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+                        screen = pygame.display.set_mode(
+                            (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN
+                        )
                     else:
                         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -205,15 +206,17 @@ player = Player()
 aliens = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 
+
 # Create and position the shield instances
 def setup_shields():
     shields = pygame.sprite.Group()
 
     shield_count = 3
     shield_spacing = SCREEN_WIDTH / 6
-    start_x = (SCREEN_WIDTH - shield_count * shield_width - (shield_count - 1) * shield_spacing) // 2
+    start_x = (
+        SCREEN_WIDTH - shield_count * shield_width - (shield_count - 1) * shield_spacing
+    ) // 2
     start_y = SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.2)
-
 
     for i in range(shield_count):
         x = start_x + i * (shield_width + shield_spacing)
@@ -222,6 +225,7 @@ def setup_shields():
         shields.add(shield)
 
     return shields
+
 
 for row, col in itertools.product(range(ALIEN_ROWS), range(ALIEN_COLUMNS)):
     x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
@@ -268,7 +272,6 @@ while True:
     shields_hit = pygame.sprite.groupcollide(shields, bullets, False, True)
     for shield in shields_hit:
         shield.hit(25)  # Adjust the damage value based on your preference
-
 
     if random.random() < alien_shoot_prob:
         alien_shooter = random.choice(aliens.sprites())
