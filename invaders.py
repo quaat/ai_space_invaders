@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 from pygame.locals import *
 
 pygame.init()
@@ -78,8 +79,8 @@ player_img = pygame.transform.scale(
 bullet_img = pygame.transform.scale(
     bullet_img,
     (
-        int(bullet_img.get_width() * 0.3),
-        int(bullet_img.get_height() * 0.3),
+        int(bullet_img.get_width() * 0.4),
+        int(bullet_img.get_height() * 0.4),
     ),
 )
 
@@ -149,15 +150,53 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
+import math
+
+
 class Alien(pygame.sprite.Sprite):
+    """
+    In this updated version of the Alien class, we store the original alien image in self.original_image,
+    calculate the rotation angle and scale factor using sine functions, and apply the rotation and scaling
+    transformations to the alien image. The update() method is called automatically by Pygame for all sprites
+    in the all_sprites group.
+
+    Adjust the self.animation_speed value to control the speed of the animations. A lower value will make
+    the animations faster, while a higher value will make them slower.
+    """
+
     def __init__(self, alien_type, x, y, speed):
         super().__init__()
-        self.image = alien_imgs[alien_type]
+        self.original_image = alien_imgs[alien_type]
+        self.image = self.original_image.copy()
         self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.rect.x = x
+        self.rect.y = y
+        self.type = alien_type
+        self.animation_time = 0
         self.speed = speed
+        self.animation_speed = 60  # Adjust this value to control the animation speed
 
     def update(self):
+        self.animation_time += 1
+        angle = math.sin(self.animation_time / self.animation_speed) * 10
+        scale_factor = (
+            1 + math.sin(self.animation_time / (self.animation_speed * 2)) * 0.05
+        )
+
+        # Rotate the alien ship
+        rotated_image = pygame.transform.rotate(self.original_image, angle)
+
+        # Scale the alien ship
+        scaled_width = int(self.original_image.get_width() * scale_factor)
+        scaled_height = int(self.original_image.get_height() * scale_factor)
+        scaled_image = pygame.transform.scale(
+            rotated_image, (scaled_width, scaled_height)
+        )
+
+        # Update the alien ship's image and rect
+        self.image = scaled_image
+
+        self.rect = self.image.get_rect(center=self.rect.center)
         self.rect.x += self.speed
 
 
@@ -244,6 +283,7 @@ def setup_shields():
 
 
 import contextlib
+
 for row, col in itertools.product(range(ALIEN_ROWS), range(ALIEN_COLUMNS)):
     x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
     y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
@@ -294,7 +334,9 @@ while True:
     if random.random() < alien_shoot_prob:
         with contextlib.suppress(IndexError):
             alien_shooter = random.choice(aliens.sprites())
-            alien_bullet = Bullet(alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1)
+            alien_bullet = Bullet(
+                alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1
+            )
             bullets.add(alien_bullet)
     if pygame.sprite.spritecollide(player, bullets, False) or any(
         alien.rect.colliderect(player.rect) for alien in aliens
