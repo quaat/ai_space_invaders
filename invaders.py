@@ -1,40 +1,34 @@
-import pygame
+# main.py
+
 import sys
+import pygame
 import random
-import math
+import itertools
 from pygame.locals import *
+from config import (
+    ALIEN_COLUMNS,
+    ALIEN_DROP,
+    ALIEN_ROWS,
+    ALIEN_SPEED,
+    ALIEN_SHOOT_PROB,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    SHOOT_PROB_INCREASE_FACTOR,
+    SPEED_INCREASE_FACTOR,
+    WHITE,
+    BLACK,
+    FPS,
+    ALIEN_SPACING,
+    alien_width
+    )
+from invaders import Shield
+from player import Player
+from bullet import Bullet
+from alien import Alien
 
 pygame.init()
 pygame.mixer.init()
-
-
 fullscreen = True
-
-# Initialize the Pygame module, define constants, and load the sprites
-SCREEN_WIDTH = 1920
-SCREEN_HEIGHT = 1080
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-FPS = 60
-ALIEN_COLUMNS = 11
-ALIEN_ROWS = 5
-ALIEN_SPACING = 40
-SCORE = 0
-
-ALIEN_SPEED = 1
-ALIEN_DROP = 30
-ALIEN_SHOOT_PROB = 0.01
-SPEED_INCREASE_FACTOR = 1.25
-SHOOT_PROB_INCREASE_FACTOR = 1.25
-
-
-scale_factor = 0.3
-ALIEN_SPACING = int(ALIEN_SPACING * scale_factor)
-
-alien_width = int(SCREEN_WIDTH * 0.05)
-shield_width = int(SCREEN_WIDTH * 0.1)
-player_width = int(SCREEN_WIDTH * 0.06)
-
 
 def resize_image(image, new_width):
     aspect_ratio = image.get_height() / image.get_width()
@@ -85,7 +79,7 @@ bullet_img = pygame.transform.scale(
 )
 
 
-shield_img = pygame.image.load("shield.png")
+shield_img = pygame.image.load("assets/shield.png")
 shield_width = int(SCREEN_WIDTH * 0.1)  # Adjust the size to your preference
 shield_img = resize_image(shield_img, shield_width)
 
@@ -94,110 +88,6 @@ shield_img = resize_image(shield_img, shield_width)
 shoot_sound = pygame.mixer.Sound("assets/shoot.wav")
 invaderkilled_sound = pygame.mixer.Sound("assets/invaderkilled.wav")
 explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
-
-
-# Define the classes for the game objects
-
-
-class Shield(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.original_image = shield_img
-        self.image = shield_img.copy()
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.health = 100  # You can adjust the health of the shield
-
-    def hit(self, damage):
-        self.health -= damage
-        if self.health <= 0:
-            self.kill()
-        else:
-            self.update_transparency()
-
-    def update_transparency(self):
-        alpha = int((self.health / 100) * 255)
-        self.image = self.original_image.copy()
-        self.image.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MULT)
-
-
-class Player(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = player_img
-        self.rect = self.image.get_rect()
-        self.rect.midbottom = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30)
-
-    def update(self, keys):
-        if keys[K_LEFT]:
-            self.rect.move_ip(-5, 0)
-        if keys[K_RIGHT]:
-            self.rect.move_ip(5, 0)
-
-
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction):
-        super().__init__()
-        self.image = bullet_img
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-        self.direction = direction
-
-    def update(self):
-        self.rect.move_ip(0, self.direction * 10)
-        if self.rect.bottom < 0 or self.rect.top > SCREEN_HEIGHT:
-            self.kill()
-
-
-import math
-
-
-class Alien(pygame.sprite.Sprite):
-    """
-    In this updated version of the Alien class, we store the original alien image in self.original_image,
-    calculate the rotation angle and scale factor using sine functions, and apply the rotation and scaling
-    transformations to the alien image. The update() method is called automatically by Pygame for all sprites
-    in the all_sprites group.
-
-    Adjust the self.animation_speed value to control the speed of the animations. A lower value will make
-    the animations faster, while a higher value will make them slower.
-    """
-
-    def __init__(self, alien_type, x, y, speed):
-        super().__init__()
-        self.original_image = alien_imgs[alien_type]
-        self.image = self.original_image.copy()
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.type = alien_type
-        self.animation_time = 0
-        self.speed = speed
-        self.animation_speed = 60  # Adjust this value to control the animation speed
-
-    def update(self):
-        self.animation_time += 1
-        angle = math.sin(self.animation_time / self.animation_speed) * 10
-        scale_factor = (
-            1 + math.sin(self.animation_time / (self.animation_speed * 2)) * 0.05
-        )
-
-        # Rotate the alien ship
-        rotated_image = pygame.transform.rotate(self.original_image, angle)
-
-        # Scale the alien ship
-        scaled_width = int(self.original_image.get_width() * scale_factor)
-        scaled_height = int(self.original_image.get_height() * scale_factor)
-        scaled_image = pygame.transform.scale(
-            rotated_image, (scaled_width, scaled_height)
-        )
-
-        # Update the alien ship's image and rect
-        self.image = scaled_image
-
-        self.rect = self.image.get_rect(center=self.rect.center)
-        self.rect.x += self.speed
 
 
 # Define a function to display the welcome screen
@@ -218,6 +108,9 @@ def welcome_screen(last_score, high_score):
         center=(SCREEN_WIDTH // 2, welcome_text_rect.y - 50)
     )
 
+    pygame.mixer.music.load("./assets/music.ogg", "ogg")
+    pygame.mixer.music.play(-1)  # Play the music on repeat
+    pygame.mixer.music.set_volume(1.0)
     while True:
         screen.blit(welcome_bg, (0, 0))
         screen.blit(welcome_text_surface, welcome_text_rect)
@@ -248,8 +141,6 @@ def welcome_screen(last_score, high_score):
 
 # Initialize the game objects, and create the main game loop:
 
-import itertools
-
 last_score = 0
 high_score = 0
 
@@ -257,7 +148,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREE
 clock = pygame.time.Clock()
 pygame.display.set_caption("Space Invaders")
 
-player = Player()
+player = Player(player_img)
 aliens = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 
@@ -287,7 +178,7 @@ import contextlib
 for row, col in itertools.product(range(ALIEN_ROWS), range(ALIEN_COLUMNS)):
     x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
     y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
-    alien = Alien(row, x, y, ALIEN_SPEED)
+    alien = Alien(row, x, y, ALIEN_SPEED, alien_imgs[row])
     aliens.add(alien)
 
 alien_shoot_prob = ALIEN_SHOOT_PROB
@@ -342,6 +233,7 @@ while True:
         alien.rect.colliderect(player.rect) for alien in aliens
     ):
         explosion_sound.play()
+        pygame.mixer.music.stop()
         pygame.time.delay(3000)  # Wait for 3 seconds (3000 milliseconds)
         last_score = SCORE
         high_score = max(high_score, last_score)
@@ -379,3 +271,4 @@ while True:
 
     pygame.display.flip()
     clock.tick(FPS)
+
