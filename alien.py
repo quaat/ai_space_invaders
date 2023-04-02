@@ -3,6 +3,7 @@
 import pygame
 import math
 
+
 class Alien(pygame.sprite.Sprite):
     def __init__(self, alien_type, x, y, speed, alien_img):
         super().__init__()

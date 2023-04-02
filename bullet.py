@@ -3,6 +3,7 @@
 import pygame
 from config import SCREEN_HEIGHT
 
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction, bullet_img):
         super().__init__()

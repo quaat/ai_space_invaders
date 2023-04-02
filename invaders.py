@@ -19,16 +19,18 @@ from config import (
     BLACK,
     FPS,
     ALIEN_SPACING,
-    alien_width
-    )
-from invaders import Shield
+    alien_width,
+)
+
 from player import Player
 from bullet import Bullet
 from alien import Alien
+from shield import Shield
 
 pygame.init()
 pygame.mixer.init()
 fullscreen = True
+
 
 def resize_image(image, new_width):
     aspect_ratio = image.get_height() / image.get_width()
@@ -47,6 +49,7 @@ def draw_text(surface, text, size, x, y, color=(255, 255, 255)):
     text_rect.topleft = (x, y)
     surface.blit(text_surface, text_rect)
 
+SCORE = 0
 
 welcome_bg = pygame.image.load("assets/welcome_bg.png")
 welcome_bg = pygame.transform.scale(welcome_bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -108,9 +111,6 @@ def welcome_screen(last_score, high_score):
         center=(SCREEN_WIDTH // 2, welcome_text_rect.y - 50)
     )
 
-    pygame.mixer.music.load("./assets/music.ogg", "ogg")
-    pygame.mixer.music.play(-1)  # Play the music on repeat
-    pygame.mixer.music.set_volume(1.0)
     while True:
         screen.blit(welcome_bg, (0, 0))
         screen.blit(welcome_text_surface, welcome_text_rect)
@@ -167,7 +167,7 @@ def setup_shields():
     for i in range(shield_count):
         x = start_x + i * (shield_width + shield_spacing)
         y = start_y
-        shield = Shield(x, y)
+        shield = Shield(x, y, shield_img)
         shields.add(shield)
 
     return shields
@@ -197,7 +197,7 @@ while True:
             pygame.quit()
             sys.exit()
         if event.type == KEYDOWN and event.key == K_SPACE:
-            bullet = Bullet(player.rect.centerx, player.rect.top, -1)
+            bullet = Bullet(player.rect.centerx, player.rect.top, -1, bullet_img)
             bullets.add(bullet)
             shoot_sound.play()
 
@@ -226,7 +226,7 @@ while True:
         with contextlib.suppress(IndexError):
             alien_shooter = random.choice(aliens.sprites())
             alien_bullet = Bullet(
-                alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1
+                alien_shooter.rect.centerx, alien_shooter.rect.bottom, 1, bullet_img
             )
             bullets.add(alien_bullet)
     if pygame.sprite.spritecollide(player, bullets, False) or any(
@@ -248,7 +248,7 @@ while True:
             for col in range(ALIEN_COLUMNS):
                 x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
                 y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
-                alien = Alien(row, x, y, ALIEN_SPEED)
+                alien = Alien(row, x, y, ALIEN_SPEED, alien_imgs[row])
                 aliens.add(alien)
         if not welcome_screen(last_score, high_score):
             pygame.quit()
@@ -261,7 +261,7 @@ while True:
             for col in range(ALIEN_COLUMNS):
                 x = col * (alien_imgs[row].get_width() + ALIEN_SPACING)
                 y = row * (alien_imgs[row].get_height() + ALIEN_SPACING)
-                alien = Alien(row, x, y, ALIEN_SPEED)
+                alien = Alien(row, x, y, ALIEN_SPEED, alien_imgs[row])
                 aliens.add(alien)
 
     aliens.draw(screen)
@@ -271,4 +271,3 @@ while True:
 
     pygame.display.flip()
     clock.tick(FPS)
-

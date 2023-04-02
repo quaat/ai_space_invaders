@@ -1,7 +1,9 @@
 # player.py
 
 import pygame
+from pygame.locals import *
 from config import SCREEN_HEIGHT, SCREEN_WIDTH
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, player_img):
