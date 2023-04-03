@@ -205,12 +205,14 @@ while True:
     aliens.update()
     bullets.update()
 
-    for alien in aliens:
-        if alien.rect.right >= SCREEN_WIDTH or alien.rect.left <= 0:
-            for a in aliens:
-                a.speed = -a.speed
-                a.rect.y += ALIEN_DROP
-            break
+    change_direction_flag = any(
+        alien.rect.right >= SCREEN_WIDTH or alien.rect.left <= 0
+        for alien in aliens
+    )
+    if change_direction_flag:
+        for a in aliens:
+            a.speed = -a.speed
+            a.rect.y += ALIEN_DROP
 
     aliens_hit = pygame.sprite.groupcollide(bullets, aliens, True, True)
     if aliens_hit:
