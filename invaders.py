@@ -14,7 +14,7 @@ from config import (
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
     SHOOT_PROB_INCREASE_FACTOR,
-    SPEED_INCREASE_FACTOR,
+    SPEED_INCREASE,
     WHITE,
     BLACK,
     FPS,
@@ -205,14 +205,16 @@ while True:
     aliens.update()
     bullets.update()
 
-    change_direction_flag = any(
-        alien.rect.right >= SCREEN_WIDTH or alien.rect.left <= 0
-        for alien in aliens
-    )
-    if change_direction_flag:
-        for a in aliens:
-            a.speed = -a.speed
-            a.rect.y += ALIEN_DROP
+    aliens_moved_down = False
+    for alien in aliens:
+        if (alien.rect.right >= SCREEN_WIDTH or alien.rect.left <= 0) and not aliens_moved_down:
+            for a in aliens:
+                a.change_direction()
+            aliens_moved_down = True
+            break
+    else:
+        aliens_moved_down = False
+
 
     aliens_hit = pygame.sprite.groupcollide(bullets, aliens, True, True)
     if aliens_hit:
@@ -257,7 +259,7 @@ while True:
             sys.exit()
 
     if not aliens:
-        ALIEN_SPEED *= SPEED_INCREASE_FACTOR
+        ALIEN_SPEED += SPEED_INCREASE
         alien_shoot_prob *= SHOOT_PROB_INCREASE_FACTOR
         for row in range(ALIEN_ROWS):
             for col in range(ALIEN_COLUMNS):
